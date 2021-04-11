@@ -94,6 +94,58 @@ static addr_t search_near_blank_page(addr_t pos, size_t alloc_range) {
 NearMemoryArena::NearMemoryArena() {
 }
 
+#if defined(_WINDOWS)
+void* memmem(const void* haystack, size_t haystackLen,
+             const void* needle, size_t needleLen)
+{
+	/* The first occurrence of the empty string is deemed to occur at
+	the beginning of the string.  */
+	if (needleLen == 0 || haystack == needle)
+	{
+		return (void*)haystack;
+	}
+	
+	if (haystack == NULL || needle == NULL)
+	{
+		return NULL;
+	}
+
+	const unsigned char* haystackStart = (const unsigned char*)haystack;
+	const unsigned char* needleStart = (const unsigned char*)needle;
+	const unsigned char needleEndChr = *(needleStart + needleLen - 1);
+
+	++haystackLen;
+	for (; --haystackLen >= needleLen; ++haystackStart)
+	{
+		size_t x = needleLen;
+		const unsigned char* n = needleStart;
+		const unsigned char* h = haystackStart;
+
+		/* Check for the first and the last character */
+		if (*haystackStart != *needleStart ||
+		    *(haystackStart + needleLen - 1) != needleEndChr)
+		{
+			continue;
+		}
+
+		while (--x > 0)
+		{
+			if (*h++ != *n++)
+			{
+				break;
+			}
+		}
+		
+		if (x == 0)
+		{
+			return (void*)haystackStart;
+		}
+	}
+
+	return NULL;
+}
+#endif
+
 static addr_t search_near_blank_memory_chunk(addr_t pos, size_t alloc_range, int alloc_size) {
   addr_t min_page_addr, max_page_addr;
   min_page_addr = ALIGN((pos - alloc_range), OSMemory::PageSize()) + OSMemory::PageSize();

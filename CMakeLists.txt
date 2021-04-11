@@ -8,7 +8,7 @@ include(cmake/Macros.cmake)
 include(cmake/XcodeGenerator.cmake)
 include(cmake/AutoFiles.cmake)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_C_STANDARD 11)
 
@@ -22,7 +22,7 @@ endif()
 # ===== Handle Option =====
 option(DOBBY_GENERATE_SHARED "Build shared library" ON)
 
-option(DOBBY_DEBUG "Enable debug logging" ON)
+option(DOBBY_DEBUG "Enable debug logging" OFF)
 
 option(NearBranch "Enable Near Branch Trampoline" ON)
 
@@ -92,7 +92,7 @@ elseif(SYSTEM.Linux)
 elseif(SYSTEM.Windows)
   if(NOT DOBBY_DEBUG)
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /export:log_internal_impl")
-    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /export:DobbyHook /export:DobbyInstrument /export:DobbySymbolResolver")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /export:DobbyHook /export:DobbyInstrument")
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /export:dobby_enable_near_branch_trampoline /export:dobby_disable_near_branch_trampoline")
   endif()
 endif()

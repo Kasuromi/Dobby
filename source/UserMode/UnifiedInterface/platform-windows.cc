@@ -2,6 +2,8 @@
 
 #include <windows.h>
 
+#include "platform.h"
+
 int GetProtectionFromMemoryPermission(MemoryPermission access) {
   if (kReadWriteExecute == access)
     return PAGE_EXECUTE_READWRITE;
