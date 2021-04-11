@@ -46,7 +46,7 @@ jobs:
       - name: init cmake
         run: |
           cmake -DCMAKE_BUILD_TYPE=Release -B build64
-          cmake -DCMAKE_SYSTEM_PROCESSOR=x86 -DARCHS="x86" -DCMAKE_BUILD_TYPE=Release -B build86
+          cmake -DCMAKE_SYSTEM_PROCESSOR=i386 -DCMAKE_BUILD_TYPE=Release -B build86
           
       - name: build x64
         run: |
