@@ -50,5 +50,5 @@ jobs:
       - name: build
         run: |
           cd build
-          make
+          make dobby
           ls -la
