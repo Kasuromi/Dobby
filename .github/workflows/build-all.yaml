@@ -35,3 +35,20 @@ jobs:
           path: |
             build32/Release/dobby.dll
             build64/Release/dobby.dll
+  
+  build_linux:
+    name: Build Linux
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout master
+        uses: actions/checkout@master
+        
+      - name: init cmake
+        run: |
+          cmake -DCMAKE_BUILD_TYPE=Release -B build
+          
+      - name: build
+        run: |
+          cd build
+          make
+          ls -la
