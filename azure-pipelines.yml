@@ -31,7 +31,11 @@ jobs:
           configuration: 'Release'
           msbuildArguments: '-t:dobby'
 
+
       - script: |
+          dir "$(Build.SourcesDirectory)/build32"
+          dir "$(Build.SourcesDirectory)/build32/Release"
+          dir "$(Build.SourcesDirectory)/build64/Release"
           mkdir "$(Build.SourcesDirectory)/build_result"
           copy "$(Build.SourcesDirectory)/build32/Release/dobby.dll" "$(Build.SourcesDirectory)/build_result/dobby_x86.dll"
           copy "$(Build.SourcesDirectory)/build64/Release/dobby.dll" "$(Build.SourcesDirectory)/build_result/dobby_x64.dll"
