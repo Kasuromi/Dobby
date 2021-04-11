@@ -45,7 +45,7 @@ jobs:
         
       - name: init cmake
         run: |
-          cmake -A x64 -DCMAKE_BUILD_TYPE=Release -B build64
+          cmake -A x86_64 -DCMAKE_BUILD_TYPE=Release -B build64
           cmake -A x86 -DCMAKE_BUILD_TYPE=Release -B build86
           
       - name: build x64
