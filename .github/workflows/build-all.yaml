@@ -45,7 +45,7 @@ jobs:
         
       - name: install support files
         run: |
-          sudo apt install gcc-multilib -y
+          sudo apt install gcc-multilib libstdc++6 -y
         
       - name: init cmake
         run: |
