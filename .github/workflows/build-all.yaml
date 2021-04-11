@@ -45,10 +45,17 @@ jobs:
         
       - name: init cmake
         run: |
-          cmake -DCMAKE_BUILD_TYPE=Release -B build
+          cmake -A x64 -DCMAKE_BUILD_TYPE=Release -B build64
+          cmake -A x86 -DCMAKE_BUILD_TYPE=Release -B build86
           
-      - name: build
+      - name: build x64
         run: |
-          cd build
+          cd build64
+          make dobby
+          ls -la
+          
+      - name: build x86
+        run: |
+          cd build86
           make dobby
           ls -la
