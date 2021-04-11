@@ -43,6 +43,10 @@ jobs:
       - name: checkout master
         uses: actions/checkout@master
         
+      - name: install support files
+        run: |
+          apt install gcc-multilib -y
+        
       - name: init cmake
         run: |
           cmake -DCMAKE_BUILD_TYPE=Release -B build64
