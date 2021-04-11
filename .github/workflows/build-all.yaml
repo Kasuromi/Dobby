@@ -73,10 +73,6 @@ jobs:
     steps:
       - name: checkout master
         uses: actions/checkout@master
-        
-      - name: install SDK headers
-        run: |
-          xcode-select --install
           
       - name: init cmake
         run: |
