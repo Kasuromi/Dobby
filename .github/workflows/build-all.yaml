@@ -28,3 +28,10 @@ jobs:
       - name: build x64
         run: |
           cd build64 && msbuild Dobby.sln -t:dobby -p:Configuration=Release
+          
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Dobby_Windows
+          path: |
+            build32/Release/dobby.dll
+            build32/Release/dobby.dll
