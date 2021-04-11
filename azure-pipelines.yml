@@ -39,7 +39,7 @@ jobs:
         
       - task: ArchiveFiles@2
         inputs:
-          rootFolderOrFile: '$(Build.BinariesDirectory)\build_result'
+          rootFolderOrFile: '$(Build.SourcesDirectory)\build_result'
           includeRootFolder: true
           archiveType: 'zip'
           archiveFile: '$(Build.ArtifactStagingDirectory)\$(Build.BuildId)_win.zip'
