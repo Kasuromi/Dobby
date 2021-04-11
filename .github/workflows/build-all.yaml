@@ -66,3 +66,29 @@ jobs:
           path: |
             build86/libdobby.so
             build64/libdobby.so
+
+  build-macos:
+    name: Build macOS
+    runs-on: macos-10.15
+    steps:
+      - name: checkout master
+        uses: actions/checkout@master
+        
+      - name: install SDK headers
+        run: |
+          sudo installer -pkg /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.15.pkg -target
+          
+      - name: init cmake
+        run: |
+          cmake -DCMAKE_BUILD_TYPE=Release -B build64
+          cmake -DCMAKE_CXX_FLAGS="-m32" -DCMAKE_C_FLAGS="-m32" -DCMAKE_SHARED_LINKER_FLAGS="-m32" -DCMAKE_BUILD_TYPE=Release -B build86
+          
+      - name: build x64
+        run: |
+          cd build64 && make dobby
+          ls -la
+          
+      - name: build x86
+        run: |
+          cd build86 && make dobby
+          ls -la
