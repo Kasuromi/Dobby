@@ -13,40 +13,40 @@ jobs:
       vmImage: windows-latest
     steps:
       - script: |
-          cmake -A x64 -B "$(Build.SourcesDirectory)/build64"
-          cmake -A Win32 -B "$(Build.SourcesDirectory)/build32"
+          cmake -A x64 -B "$(Build.SourcesDirectory)\build64"
+          cmake -A Win32 -B "$(Build.SourcesDirectory)\build32"
         displayName: Init CMake
 
       - task: MSBuild@1
         inputs:
-          solution: '$(Build.SourcesDirectory)/build32/Dobby.sln'
+          solution: '$(Build.SourcesDirectory)\build32\Dobby.sln'
           msbuildArchitecture: 'x86'
           configuration: 'Release'
           msbuildArguments: '-t:dobby'
 
       - task: MSBuild@1
         inputs:
-          solution: '$(Build.SourcesDirectory)/build64/Dobby.sln'
+          solution: '$(Build.SourcesDirectory)\build64\Dobby.sln'
           msbuildArchitecture: 'x64'
           configuration: 'Release'
           msbuildArguments: '-t:dobby'
 
 
       - script: |
-          copy "$(Build.SourcesDirectory)/build32/Release/dobby.dll" "$(Build.SourcesDirectory)/build_result/dobby_x86.dll"
-          copy "$(Build.SourcesDirectory)/build64/Release/dobby.dll" "$(Build.SourcesDirectory)/build_result/dobby_x64.dll"
+          copy "$(Build.SourcesDirectory)\build32\Release\dobby.dll" "$(Build.SourcesDirectory)\build_result\dobby_x86.dll"
+          copy "$(Build.SourcesDirectory)\build64\Release\dobby.dll" "$(Build.SourcesDirectory)\build_result\dobby_x64.dll"
         
       - task: ArchiveFiles@2
         inputs:
-          rootFolderOrFile: '$(Build.BinariesDirectory)/build_result'
+          rootFolderOrFile: '$(Build.BinariesDirectory)\build_result'
           includeRootFolder: true
           archiveType: 'zip'
-          archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId)_win.zip'
+          archiveFile: '$(Build.ArtifactStagingDirectory)\$(Build.BuildId)_win.zip'
           replaceExistingArchive: true
       
       - task: PublishBuildArtifacts@1
         inputs:
-          PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId)_win.zip'
+          PathtoPublish: '$(Build.ArtifactStagingDirectory)\$(Build.BuildId)_win.zip'
           ArtifactName: 'dobby_win'
           publishLocation: 'Container'
   # - job: LinuxBuild
