@@ -17,13 +17,19 @@ jobs:
           cmake -A Win32 -B "$(Build.SourcesDirectory)/build32"
         displayName: Init CMake
 
-      - script: |
-          cd "$(Build.SourcesDirectory)/build32" && msbuild Dobby.sln -t:dobby -p:Configuration=Release
-        displayName: Build Win32
+      - task: MSBuild@1
+        inputs:
+          solution: '$(Build.SourcesDirectory)/build32/Dobby.sln'
+          msbuildArchitecture: 'x86'
+          configuration: 'Release'
+          msbuildArguments: '-t:dobby'
 
-      - script: |
-          cd "$(Build.SourcesDirectory)/build64" && msbuild Dobby.sln -t:dobby -p:Configuration=Release
-        displayName: Build x64
+      - task: MSBuild@1
+        inputs:
+          solution: '$(Build.SourcesDirectory)/build64/Dobby.sln'
+          msbuildArchitecture: 'x64'
+          configuration: 'Release'
+          msbuildArguments: '-t:dobby'
 
       - script: |
           mkdir "$(Build.SourcesDirectory)/build_result"
