@@ -46,7 +46,7 @@ jobs:
       - name: init cmake
         run: |
           cmake -DCMAKE_BUILD_TYPE=Release -B build64
-          cmake -DCMAKE_C_FLAGS=-m32 -DCMAKE_CXX_FLAGS=-m32 -DCMAKE_SHARED_LINKER_FLAGS=-m32 -DCMAKE_BUILD_TYPE=Release -B build86
+          cmake -DCMAKE_SYSTEM_PROCESSOR=X86 -DCMAKE_BUILD_TYPE=Release -B build86
           
       - name: build x64
         run: |
