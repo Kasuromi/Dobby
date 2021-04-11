@@ -1,0 +1,23 @@
+name: Build All
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build_windows:
+    name: Build Windows
+    runs-on: windows-latest
+    steps:
+      - name: checkout master
+        uses: actions/checkout@master
+    
+      - name: init cmake
+        run: |
+          mkdir build && cd build
+          cmake ..
+      
+      - name: build
+        run: |
+          msbuild Dobby.sln -t:dobby -p:Configuration=Release
