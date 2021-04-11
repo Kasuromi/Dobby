@@ -18,10 +18,13 @@ jobs:
     
       - name: init cmake
         run: |
-          mkdir build && cd build
-          cmake ..
+          cmake -A x64 -B build64
+          cmake -A x86 -B build32
       
-      - name: build
+      - name: build x86
         run: |
-          cd build
-          msbuild Dobby.sln -t:dobby -p:Configuration=Release
+          cd build32 && msbuild Dobby.sln -t:dobby -p:Configuration=Release
+
+      - name: build x64
+        run: |
+          cd build64 && msbuild Dobby.sln -t:dobby -p:Configuration=Release
