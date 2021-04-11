@@ -45,7 +45,7 @@ jobs:
         
       - name: install support files
         run: |
-          apt install gcc-multilib -y
+          sudo apt install gcc-multilib -y
         
       - name: init cmake
         run: |
