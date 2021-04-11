@@ -43,26 +43,26 @@ jobs:
       - name: checkout master
         uses: actions/checkout@master
         
-      - name: install support files
+      - name: install support packages
         run: |
           sudo apt install gcc-multilib g++-multilib libc6-dev-i386 -y
         
       - name: init cmake
         run: |
           cmake -DCMAKE_BUILD_TYPE=Release -B build64
-          
-      - name: init cmake2
-        run: |
           cmake -DCMAKE_CXX_FLAGS="-m32" -DCMAKE_C_FLAGS="-m32" -DCMAKE_SHARED_LINKER_FLAGS="-m32" -DCMAKE_BUILD_TYPE=Release -B build86
         
       - name: build x64
         run: |
-          cd build64
-          make dobby
-          ls -la
+          cd build64 && make dobby
           
       - name: build x86
         run: |
-          cd build86
-          make dobby
-          ls -la
+          cd build86 && make dobby
+          
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Dobby_Linux
+          path: |
+            build86/libdobby.so
+            build64/libdobby.so
