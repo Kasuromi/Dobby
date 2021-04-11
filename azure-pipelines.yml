@@ -1,0 +1,85 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- master
+
+jobs:
+  - job: windows_builds
+    displayName: Windows Builds
+    pool:
+      vmImage: windows-latest
+    steps:
+      - script: |
+          cmake -A x64 -B "$(Build.SourcesDirectory)/build64"
+          cmake -A Win32 -B "$(Build.SourcesDirectory)/build32"
+        displayName: Init CMake
+
+      - script: |
+          cd "$(Build.SourcesDirectory)/build32" && msbuild Dobby.sln -t:dobby -p:Configuration=Release
+        displayName: Build Win32
+
+      - script: |
+          cd "$(Build.SourcesDirectory)/build64" && msbuild Dobby.sln -t:dobby -p:Configuration=Release
+        displayName: Build x64
+
+      - script: |
+          mkdir "$(Build.SourcesDirectory)/build_result"
+          cp "$(Build.SourcesDirectory)/build32/Release/dobby.dll" "$(Build.SourcesDirectory)/build_result/dobby_x86.dll"
+          cp "$(Build.SourcesDirectory)/build64/Release/dobby.dll" "$(Build.SourcesDirectory)/build_result/dobby_x64.dll"
+        
+      - task: ArchiveFiles@2
+        inputs:
+          rootFolderOrFile: '$(Build.BinariesDirectory)/build_result'
+          includeRootFolder: true
+          archiveType: 'zip'
+          archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId)_win.zip'
+          replaceExistingArchive: true
+      
+      - task: PublishBuildArtifacts@1
+        inputs:
+          PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId)_win.zip'
+          ArtifactName: 'dobby_win'
+          publishLocation: 'Container'
+  # - job: LinuxBuild
+  #   displayName: 'Build Linux'
+  #   pool:
+  #     vmImage: 'ubuntu-latest'
+  #   steps:
+  #   - script: |
+  #       sudo apt-get update;
+  #       sudo apt-get -y install gcc-multilib
+  #     displayName: 'getting deps'
+  #   - script: |
+  #       make
+  #     displayName: 'make'
+  #   - script: |
+  #       zip -r $(Build.SourcesDirectory)/doorstop_linux_$(Build.BuildId).zip *.so
+  #     displayName: 'Package files'
+  #   - task: PublishBuildArtifacts@1
+  #     inputs:
+  #       PathtoPublish: '$(Build.SourcesDirectory)/doorstop_linux_$(Build.BuildId).zip'
+  #       ArtifactName: 'doorstop_linux'
+  #       publishLocation: 'Container'
+  # - job: MacOSBuild # x86 is not allowed on 10.14+ anymore
+  #   displayName: 'Build MacOS'
+  #   pool:
+  #     vmImage: 'macOS-10.14'
+  #   steps:
+  #   - script: |
+  #       sudo installer -pkg /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg -target /
+  #     displayName: 'Install macOS SDK Headers'
+  #   - script: |
+  #       make
+  #     displayName: 'make'
+  #   - script: |
+  #       zip -r $(Build.SourcesDirectory)/doorstop_macos_$(Build.BuildId).zip *.dylib
+  #     displayName: 'Package files'
+  #   - task: PublishBuildArtifacts@1
+  #     inputs:
+  #       PathtoPublish: '$(Build.SourcesDirectory)/doorstop_macos_$(Build.BuildId).zip'
+  #       ArtifactName: 'doorstop_macos'
+  #       publishLocation: 'Container'
+
