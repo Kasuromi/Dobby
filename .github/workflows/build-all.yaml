@@ -34,4 +34,4 @@ jobs:
           name: Dobby_Windows
           path: |
             build32/Release/dobby.dll
-            build32/Release/dobby.dll
+            build64/Release/dobby.dll
