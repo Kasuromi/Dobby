@@ -128,21 +128,21 @@ jobs:
         inputs:
           buildType: current
           downloadType: single
-          artifactName: win_$(Build.BuildId).zip
+          artifactName: dobby_win
           downloadPath: $(System.ArtifactsDirectory)
       
       - task: DownloadBuildArtifacts@0
         inputs:
           buildType: current
           downloadType: single
-          artifactName: linux_$(Build.BuildId).zip
+          artifactName: dobby_linux
           downloadPath: $(System.ArtifactsDirectory)
 
       - task: DownloadBuildArtifacts@0
         inputs:
           buildType: current
           downloadType: single
-          artifactName: macos_$(Build.BuildId).zip
+          artifactName: dobby_macos
           downloadPath: $(System.ArtifactsDirectory)
 
       - script: |
