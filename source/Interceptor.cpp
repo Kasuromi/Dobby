@@ -14,8 +14,9 @@ Interceptor *Interceptor::SharedInstance() {
 
 HookEntryNode *Interceptor::find_hook_entry_node(void *address) {
   HookEntryNode *entry_node = nullptr;
-  list_for_each_entry(entry_node, &hook_entry_list_, list_node) {
-    HookEntry *entry = entry_node->entry;
+
+  for (auto *node = hook_entry_list_.next; node != &hook_entry_list_; node = node->next) {
+    auto *entry = entry_node->entry;
     if (entry->instruction_address == address) {
       return entry_node;
     }
@@ -48,8 +49,8 @@ void Interceptor::RemoveHookEntry(void *address) {
 
 int Interceptor::GetHookEntryCount() {
   int count = 0;
-  HookEntryNode *entry_node = nullptr;
-  list_for_each_entry(entry_node, &hook_entry_list_, list_node) {
+  auto *node = &hook_entry_list_;
+  while ((node = node->next) != &hook_entry_list_) {
     count += 1;
   }
   return count;
