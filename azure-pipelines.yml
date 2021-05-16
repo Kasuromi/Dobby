@@ -147,9 +147,10 @@ jobs:
 
       - script: |
           cd $(System.ArtifactsDirectory)
-          unzip win_$(Build.BuildId).zip
-          unzip linux_$(Build.BuildId).zip
-          unzip macos_$(Build.BuildId).zip
+          ls -la
+          unzip dobby_win.zip
+          unzip dobby_linux.zip
+          unzip dobby_macos.zip
           mkdir dobby_dist
           mv build_result/dobby_x64.dll dobby_dist/dobby_x64.dll
           mv build_result/dobby_x86.dll dobby_dist/dobby_x86.dll
