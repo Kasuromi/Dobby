@@ -44,32 +44,46 @@ jobs:
           archiveType: 'zip'
           archiveFile: '$(Build.ArtifactStagingDirectory)\$(Build.BuildId)_win.zip'
           replaceExistingArchive: true
-      
+
       - task: PublishBuildArtifacts@1
         inputs:
           PathtoPublish: '$(Build.ArtifactStagingDirectory)\$(Build.BuildId)_win.zip'
           ArtifactName: 'dobby_win'
           publishLocation: 'Container'
-  # - job: LinuxBuild
-  #   displayName: 'Build Linux'
-  #   pool:
-  #     vmImage: 'ubuntu-latest'
-  #   steps:
-  #   - script: |
-  #       sudo apt-get update;
-  #       sudo apt-get -y install gcc-multilib
-  #     displayName: 'getting deps'
-  #   - script: |
-  #       make
-  #     displayName: 'make'
-  #   - script: |
-  #       zip -r $(Build.SourcesDirectory)/doorstop_linux_$(Build.BuildId).zip *.so
-  #     displayName: 'Package files'
-  #   - task: PublishBuildArtifacts@1
-  #     inputs:
-  #       PathtoPublish: '$(Build.SourcesDirectory)/doorstop_linux_$(Build.BuildId).zip'
-  #       ArtifactName: 'doorstop_linux'
-  #       publishLocation: 'Container'
+
+  - job: LinuxBuild
+    displayName: 'Build Linux'
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+      - script: |
+          sudo apt-get update;
+          sudo apt-get -y install gcc-multilib g++-multilib libc6-dev-i386
+        displayName: 'getting deps'
+
+      - script: |
+          cmake -DCMAKE_BUILD_TYPE=Release -B $(Build.SourcesDirectory)/build64
+          cmake -DCMAKE_CXX_FLAGS="-m32" -DCMAKE_C_FLAGS="-m32" -DCMAKE_SHARED_LINKER_FLAGS="-m32" -DCMAKE_BUILD_TYPE=Release -B $(Build.SourcesDirectory)/build86
+        displayName: 'init cmake'
+
+      - script: |
+          cd $(Build.SourcesDirectory)/build64 && make dobby
+        displayName: 'build x64'
+
+      - script: |
+          cd $(Build.SourcesDirectory)/build86 && make dobby
+        displayName: 'build x86'
+
+      - script: |
+          zip -r $(Build.SourcesDirectory)/linux_$(Build.BuildId).zip *.so
+        displayName: 'Package files'
+
+      - task: PublishBuildArtifacts@1
+        inputs:
+          PathtoPublish: '$(Build.SourcesDirectory)/linux_$(Build.BuildId).zip'
+          ArtifactName: 'dobby_linux'
+          publishLocation: 'Container'
+
   # - job: MacOSBuild # x86 is not allowed on 10.14+ anymore
   #   displayName: 'Build MacOS'
   #   pool:
