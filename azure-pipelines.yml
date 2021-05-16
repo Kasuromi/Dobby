@@ -84,23 +84,34 @@ jobs:
           ArtifactName: 'dobby_linux'
           publishLocation: 'Container'
 
-  # - job: MacOSBuild # x86 is not allowed on 10.14+ anymore
-  #   displayName: 'Build MacOS'
-  #   pool:
-  #     vmImage: 'macOS-10.14'
-  #   steps:
-  #   - script: |
-  #       sudo installer -pkg /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg -target /
-  #     displayName: 'Install macOS SDK Headers'
-  #   - script: |
-  #       make
-  #     displayName: 'make'
-  #   - script: |
-  #       zip -r $(Build.SourcesDirectory)/doorstop_macos_$(Build.BuildId).zip *.dylib
-  #     displayName: 'Package files'
-  #   - task: PublishBuildArtifacts@1
-  #     inputs:
-  #       PathtoPublish: '$(Build.SourcesDirectory)/doorstop_macos_$(Build.BuildId).zip'
-  #       ArtifactName: 'doorstop_macos'
-  #       publishLocation: 'Container'
+  - job: MacOSBuild # x86 is not allowed on 10.14+ anymore
+    displayName: 'Build MacOS'
+    pool:
+      vmImage: 'macOS-10.14'
+    steps:
+      - script: |
+          sudo installer -pkg /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg -target /
+        displayName: 'Install macOS SDK Headers'
 
+      - script: |
+          cmake -DCMAKE_BUILD_TYPE=Release -B $(Build.SourcesDirectory)/build64
+          cmake -DCMAKE_CXX_FLAGS="-m32" -DCMAKE_C_FLAGS="-m32" -DCMAKE_SHARED_LINKER_FLAGS="-m32" -DCMAKE_BUILD_TYPE=Release -B $(Build.SourcesDirectory)/build86
+        displayName: 'init cmake'
+
+      - script: |
+          cd $(Build.SourcesDirectory)/build64 && make dobby
+        displayName: 'build x64'
+
+      - script: |
+          cd $(Build.SourcesDirectory)/build86 && make dobby
+        displayName: 'build x86'
+
+      - script: |
+          cd $(Build.SourcesDirectory) && zip -r macos_$(Build.BuildId).zip build64/*.dylib build86/*.dylib
+        displayName: 'Package files'
+
+      - task: PublishBuildArtifacts@1
+        inputs:
+          PathtoPublish: '$(Build.SourcesDirectory)/macos_$(Build.BuildId).zip'
+          ArtifactName: 'dobby_macos'
+          publishLocation: 'Container'
