@@ -333,6 +333,9 @@ include_directories(
   builtin-plugin
 )
 
+set(dobby.plugin.SOURCE_FILE_LIST
+)
+
 set(dobby.HEADER_FILE_LIST
   include/dobby.h
   )
