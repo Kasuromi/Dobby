@@ -7,7 +7,7 @@ trigger:
 - master
 
 jobs:
-  - job: windows_builds
+  - job: WindowsBuild
     displayName: Windows Builds
     pool:
       vmImage: windows-latest
@@ -42,12 +42,12 @@ jobs:
           rootFolderOrFile: '$(Build.SourcesDirectory)\build_result'
           includeRootFolder: true
           archiveType: 'zip'
-          archiveFile: '$(Build.ArtifactStagingDirectory)\$(Build.BuildId)_win.zip'
+          archiveFile: '$(Build.ArtifactStagingDirectory)\win_$(Build.BuildId).zip'
           replaceExistingArchive: true
 
       - task: PublishBuildArtifacts@1
         inputs:
-          PathtoPublish: '$(Build.ArtifactStagingDirectory)\$(Build.BuildId)_win.zip'
+          PathtoPublish: '$(Build.ArtifactStagingDirectory)\win_$(Build.BuildId).zip'
           ArtifactName: 'dobby_win'
           publishLocation: 'Container'
 
@@ -114,4 +114,55 @@ jobs:
         inputs:
           PathtoPublish: '$(Build.SourcesDirectory)/macos_$(Build.BuildId).zip'
           ArtifactName: 'dobby_macos'
+          publishLocation: 'Container'
+
+  - job: collect
+    pool:
+      vmImage: 'ubuntu-latest'
+    dependsOn:
+      - WindowsBuild
+      - MacOSBuild
+      - LinuxBuild
+    steps:
+      - task: DownloadBuildArtifacts@0
+        inputs:
+          buildType: current
+          downloadType: single
+          artifactName: win_$(Build.BuildId).zip
+          downloadPath: $(System.ArtifactsDirectory)
+      
+      - task: DownloadBuildArtifacts@0
+        inputs:
+          buildType: current
+          downloadType: single
+          artifactName: linux_$(Build.BuildId).zip
+          downloadPath: $(System.ArtifactsDirectory)
+
+      - task: DownloadBuildArtifacts@0
+        inputs:
+          buildType: current
+          downloadType: single
+          artifactName: macos_$(Build.BuildId).zip
+          downloadPath: $(System.ArtifactsDirectory)
+
+      - script: |
+          cd $(System.ArtifactsDirectory)
+          unzip win_$(Build.BuildId).zip
+          unzip linux_$(Build.BuildId).zip
+          unzip macos_$(Build.BuildId).zip
+          mkdir dobby_dist
+          mv build_result/dobby_x64.dll dobby_dist/dobby_x64.dll
+          mv build_result/dobby_x86.dll dobby_dist/dobby_x86.dll
+          mv build64/libdobby.so dobby_dist/libdobby_x64.so
+          mv build86/libdobby.so dobby_dist/libdobby_x86.so
+          mv build64/libdobby.dylib dobby_dist/libdobby_x64.dylib
+          mv build86/libdobby.dylib dobby_dist/libdobby_x86.dylib
+          cd dobby_dist
+          zip -r dobby_$(Build.BuildId).zip *.{dll,so,dylib}
+        displayName: 'build pack'
+
+      - task: PublishBuildArtifacts@1
+        inputs:
+          PathtoPublish: '$(System.ArtifactsDirectory)/dobby_$(Build.BuildId).zip'
+          ArtifactName: 'dobby'
           publishLocation: 'Container'
