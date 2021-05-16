@@ -75,7 +75,7 @@ jobs:
         displayName: 'build x86'
 
       - script: |
-          zip -r $(Build.SourcesDirectory)/linux_$(Build.BuildId).zip $(Build.SourcesDirectory)/build64/*.so $(Build.SourcesDirectory)/build86/*.so
+         cd $(Build.SourcesDirectory) && zip -r linux_$(Build.BuildId).zip build64/*.so build86/*.so
         displayName: 'Package files'
 
       - task: PublishBuildArtifacts@1
