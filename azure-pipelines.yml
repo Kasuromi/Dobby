@@ -165,6 +165,6 @@ jobs:
 
       - task: PublishBuildArtifacts@1
         inputs:
-          PathtoPublish: '$(System.ArtifactsDirectory)/dobby_$(Build.BuildId).zip'
+          PathtoPublish: '$(System.ArtifactsDirectory)/dobby_dist/dobby_$(Build.BuildId).zip'
           ArtifactName: 'dobby'
           publishLocation: 'Container'
