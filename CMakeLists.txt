@@ -32,7 +32,7 @@ option(FullFloatingPointRegisterPack "Save and pack all floating-point registers
 
 option(EnableObfuscation "Enable llvm obfuscation" OFF)
 
-option(Plugin.SymbolResolver "Resolve symbol by [DobbySymbolResolver] " ON)
+option(Plugin.SymbolResolver "Resolve symbol by [DobbySymbolResolver] " OFF)
 
 option(Plugin.GlobalOffsetTableHook "Global Offset Table Hook by [DobbyGlobalOffsetTableReplace] " ON)
 
@@ -273,6 +273,9 @@ get_target_property(logging.SOURCE_FILE_LIST logging SOURCES)
 add_subdirectory(external/xnucxx)
 get_target_property(xnucxx.SOURCE_FILE_LIST xnucxx SOURCES)
 
+set(dobby.plugin.SOURCE_FILE_LIST
+)
+
 if(Plugin.GlobalOffsetTableHook AND SYSTEM.Darwin)
   message(STATUS "[Dobby] Enable global offset table hook")
 
@@ -331,9 +334,6 @@ include_directories(
   ./external/misc-helper
 
   builtin-plugin
-)
-
-set(dobby.plugin.SOURCE_FILE_LIST
 )
 
 set(dobby.HEADER_FILE_LIST
