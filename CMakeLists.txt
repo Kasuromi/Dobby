@@ -30,7 +30,7 @@ option(DynamicBinaryInstrument "Enable Dynamic Binary Instrument" ON)
 
 option(FullFloatingPointRegisterPack "Save and pack all floating-point registers" OFF)
 
-option(GenerateDarwinFramework "Build darwin framework library" ON)
+option(EnableObfuscation "Enable llvm obfuscation" OFF)
 
 option(Plugin.SymbolResolver "Resolve symbol by [DobbySymbolResolver] " ON)
 
@@ -71,7 +71,6 @@ if(SYSTEM.Darwin)
   # -lstdc++
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -stdlib=libc++")
   if (NOT DOBBY_DEBUG)
-    # set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-s -Wl,-X -Wl,-dead_strip")
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-x -Wl,-S")
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-exported_symbol,_log_internal_impl -Wl,-exported_symbol,_log_set_level")
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-exported_symbol,_CodePatch")
@@ -154,6 +153,7 @@ if(CMAKE_GENERATOR STREQUAL Xcode)
 endif()
 include(cmake/dobby.xcode.source.cmake)
 
+set(DOBBY_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(dobby.SOURCE_FILE_LIST ${dobby.SOURCE_FILE_LIST}
   # cpu
   source/core/arch/CpuFeature.cc
@@ -179,14 +179,14 @@ set(dobby.SOURCE_FILE_LIST ${dobby.SOURCE_FILE_LIST}
   source/InterceptRouting/InterceptRouting.cpp
 
   # intercept routing trampoline
-  source/TrampolineBridge/InterceptRoutingTrampoline/${arch1}/trampoline-${arch1}.cc
+  source/TrampolineBridge/Trampoline/${arch1}/trampoline-${arch1}.cc
 
   # intercept routing plugin (buildin)
-  source/InterceptRouting/RoutingPlugin/FunctionInlineReplace/function-inline-replace.cc
-  source/InterceptRouting/RoutingPlugin/FunctionInlineReplace/FunctionInlineReplaceExport.cc
+  source/InterceptRouting/Routing/FunctionInlineReplace/function-inline-replace.cc
+  source/InterceptRouting/Routing/FunctionInlineReplace/FunctionInlineReplaceExport.cc
 
   # plugin register
-  source/InterceptRouting/ExtraInternalPlugin/RegisterPlugin.cc
+  source/InterceptRouting/RoutingPlugin/RoutingPlugin.cc
 
   # platform util
   source/UserMode/PlatformUtil/${platform2}/ProcessRuntimeUtility.cc
@@ -230,7 +230,7 @@ endif()
 if(FunctionWrapper OR DynamicBinaryInstrument)
   set(dobby.SOURCE_FILE_LIST ${dobby.SOURCE_FILE_LIST}
     # closure trampoline bridge
-    source/TrampolineBridge/ClosureTrampolineBridge/closure-trampoline-common-handler.cc
+    source/TrampolineBridge/ClosureTrampolineBridge/common-bridge-handler.cc
     source/TrampolineBridge/ClosureTrampolineBridge/${arch1}/helper-${arch1}.cc
     source/TrampolineBridge/ClosureTrampolineBridge/${arch1}/closure-bridge-${arch1}.cc
     source/TrampolineBridge/ClosureTrampolineBridge/${arch1}/${ARCH1}AssemblyClosureTrampoline.cc
@@ -249,72 +249,50 @@ endif()
 if(DynamicBinaryInstrument)
   message(STATUS "[Dobby] Enable dynamic binary instrument(hook instruction with register context)")
   set(dobby.SOURCE_FILE_LIST ${dobby.SOURCE_FILE_LIST}
-    source/InterceptRouting/RoutingPlugin/DynamicBinaryInstrument/dynamic-binary-instrument.cc
-    source/InterceptRouting/RoutingPlugin/DynamicBinaryInstrument/DynamicBinaryInstrumentExport.cc
-    source/InterceptRouting/RoutingPlugin/DynamicBinaryInstrument/intercept_routing_handler.cc
+    source/InterceptRouting/Routing/DynamicBinaryInstrument/dynamic-binary-instrument.cc
+    source/InterceptRouting/Routing/DynamicBinaryInstrument/DynamicBinaryInstrumentExport.cc
+    source/InterceptRouting/Routing/DynamicBinaryInstrument/intercept_routing_handler.cc
     )
 endif()
 
 if(NearBranch)
   message(STATUS "[Dobby] Enable near branch trampoline(trampoline within single instruction)")
   set(dobby.SOURCE_FILE_LIST ${dobby.SOURCE_FILE_LIST}
-    source/InterceptRouting/ExtraInternalPlugin/NearBranchTrampoline/NeaBranchTrampoline.cc
+    source/InterceptRouting/RoutingPlugin/NearBranchTrampoline/NeaBranchTrampoline.cc
     source/MemoryAllocator/NearMemoryArena.cc)
 endif()
 
-add_subdirectory(external/external-helper)
+add_subdirectory(external/misc-helper)
+get_target_property(misc_helper.SOURCE_FILE_LIST misc_helper SOURCES)
 
 # add logging library
-# add_subdirectory(external/logging)
-set(logging.SOURCE_FILE_LIST
-  external/logging/logging.c
-  external/logging/cxxlogging.cc
-  )
+add_subdirectory(external/logging)
+get_target_property(logging.SOURCE_FILE_LIST logging SOURCES)
 
 # add xnucxx library
-# add_subdirectory(external/xnucxx)
-set(xnucxx.SOURCE_FILE_LIST
-  external/xnucxx/LiteObject.cc
-  external/xnucxx/LiteMemOpt.cc
-  external/xnucxx/LiteCollection.cc
-  external/xnucxx/LiteIterator.cc
-  external/xnucxx/LiteMutableArray.cc
-  external/xnucxx/LiteMutableBuffer.cc
-  )
+add_subdirectory(external/xnucxx)
+get_target_property(xnucxx.SOURCE_FILE_LIST xnucxx SOURCES)
 
-set(dobby.plugin.SOURCE_FILE_LIST
-)
+if(Plugin.GlobalOffsetTableHook AND SYSTEM.Darwin)
+  message(STATUS "[Dobby] Enable global offset table hook")
 
-set(dobby.HEADER_FILE_LIST
-  include/dobby.h
-  )
-
-if(Plugin.GlobalOffsetTableHook)
   include_directories(builtin-plugin/GlobalOffsetTableHook)
-
-  message(STATUS "[Dobby] Enable Global offset table hook")
-  if(SYSTEM.Darwin)
-    set(dobby.plugin.SOURCE_FILE_LIST ${dobby.plugin.SOURCE_FILE_LIST}
-      builtin-plugin/GlobalOffsetTableHook/global_offset_table_hook.cc
+  add_subdirectory(builtin-plugin/GlobalOffsetTableHook)
+  get_target_property(global_offset_table_hook.SOURCE_FILE_LIST global_offset_table_hook SOURCES)
+  set(dobby.plugin.SOURCE_FILE_LIST ${dobby.plugin.SOURCE_FILE_LIST}
+    ${global_offset_table_hook.SOURCE_FILE_LIST}
     )
-  endif()
 endif()
 
 if(Plugin.SymbolResolver)
-  include_directories(builtin-plugin/SymbolResolver)
-
   message(STATUS "[Dobby] Enable symbol resolver")
-  if(SYSTEM.Darwin)
-    set(dobby.plugin.SOURCE_FILE_LIST ${dobby.plugin.SOURCE_FILE_LIST}
-      builtin-plugin/SymbolResolver/macho/dyld_shared_cache_symbol_table_iterator.cc
-      builtin-plugin/SymbolResolver/macho/dobby_symbol_resolver.cc
+
+  include_directories(builtin-plugin/SymbolResolver)
+  add_subdirectory(builtin-plugin/SymbolResolver)
+  get_target_property(symbol_resolver.SOURCE_FILE_LIST symbol_resolver SOURCES)
+  set(dobby.plugin.SOURCE_FILE_LIST ${dobby.plugin.SOURCE_FILE_LIST}
+    ${symbol_resolver.SOURCE_FILE_LIST}
     )
-  endif()
-  if(SYSTEM.Linux OR SYSTEM.Android)
-    set(dobby.plugin.SOURCE_FILE_LIST ${dobby.plugin.SOURCE_FILE_LIST}
-      builtin-plugin/SymbolResolver/elf/dobby_symbol_resolver.cc
-    )
-  endif()
 endif()
 
 if(Plugin.Android.BionicLinkerRestriction)
@@ -344,14 +322,20 @@ include_directories(
   ./include
 
   ./source
+  ./source/include
   ./source/UserMode
 
   ./external
   ./external/logging
   ./external/xnucxx
+  ./external/misc-helper
 
   builtin-plugin
 )
+
+set(dobby.HEADER_FILE_LIST
+  include/dobby.h
+  )
 
 # add build version
 string(TIMESTAMP TODAY "%Y%m%d")
@@ -382,21 +366,24 @@ add_library(dobby ${DOBBY_LIBRARY_TYPE} ${dobby.HEADER_FILE_LIST} ${dobby.SOURCE
 
 target_include_directories(dobby PUBLIC include)
 
-# set(CMAKE_MACOSX_RPATH ON)
-# SET(CMAKE_SKIP_BUILD_RPATH ON)
-# SET(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
-# SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON)
-# set(CMAKE_INSTALL_NAME_DIR "${CMAKE_INSTALL_RPATH};@loader_path;@loader_path/../../Frameworks;@loader_path/../Frameworks;@executable_path/Gollum.framework;/usr/local/Gollum.framework")
-# set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH};@loader_path;@loader_path/../../Frameworks;@loader_path/../Frameworks;@executable_path/Gollum.framework;/usr/local/Gollum.framework")
-# message(STATUS "set global rpath done")
+if(EnableObfuscation)
+set(linker_flags "${linker_flags} -Wl,-mllvm -Wl,-obfuscator-conf=all")
+endif()
+set_target_properties(dobby
+  PROPERTIES LINK_FLAGS "${linker_flags}"
+  )
 if(SYSTEM.Darwin)
   # set(CMAKE_BUILD_WITH_INSTALL_NAME_DIR TRUE)
   set(CMAKE_INSTALL_NAME_DIR "@rpath")
   set(CMAKE_SHARED_LIBRARY_RUNTIME_C_FLAG "-Wl,-rpath,")
-  add_library(Dobby ${DOBBY_LIBRARY_TYPE} ${dobby.HEADER_FILE_LIST} ${dobby.SOURCE_FILE_LIST} ${logging.SOURCE_FILE_LIST} ${xnucxx.SOURCE_FILE_LIST} ${dobby.plugin.SOURCE_FILE_LIST})
+  add_library(DobbyX ${DOBBY_LIBRARY_TYPE} ${dobby.HEADER_FILE_LIST} ${dobby.SOURCE_FILE_LIST} ${logging.SOURCE_FILE_LIST} ${xnucxx.SOURCE_FILE_LIST} ${dobby.plugin.SOURCE_FILE_LIST})
+
+  set_target_properties(DobbyX
+    PROPERTIES LINK_FLAGS "${linker_flags}"
+  )
 
   # set framework property
-  set_target_properties(Dobby PROPERTIES
+  set_target_properties(DobbyX PROPERTIES
     FRAMEWORK TRUE
     FRAMEWORK_VERSION A
     MACOSX_FRAMEWORK_IDENTIFIER "com.dobby.dobby"
@@ -406,9 +393,9 @@ if(SYSTEM.Darwin)
     PUBLIC_HEADER include/dobby.h
     XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "Apple Development"
   )
-#  set_target_properties(Dobby PROPERTIES
-#    LINK_FLAGS "${CMAKE_SHARED_LINKER_FLAGS}"
-#    )
+  # set_target_properties(Dobby PROPERTIES
+  #  LINK_FLAGS "${CMAKE_SHARED_LINKER_FLAGS}"
+  #  )
 
   # message(STATUS "[Dobby] Enable Gollum.framework(iOS: 11.0 <= version, version <= 12.2, version == 12.4 )")
   # add_custom_command(TARGET Dobby
@@ -427,7 +414,7 @@ if(SYSTEM.Linux)
 endif()
 
 if(SYSTEM.Darwin)
-  target_link_libraries(Dobby
+  target_link_libraries(DobbyX
     "-framework Foundation")
 endif()
 
