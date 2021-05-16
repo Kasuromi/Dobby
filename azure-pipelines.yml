@@ -148,16 +148,17 @@ jobs:
       - script: |
           cd $(System.ArtifactsDirectory)
           ls -la
-          unzip dobby_win.zip
-          unzip dobby_linux.zip
-          unzip dobby_macos.zip
+          unzip dobby_win/win_$(Build.BuildId).zip
+          unzip dobby_linux/linux_$(Build.BuildId).zip
+          unzip dobby_macos/macos_$(Build.BuildId).zip
+          ls -la
           mkdir dobby_dist
-          mv build_result/dobby_x64.dll dobby_dist/dobby_x64.dll
-          mv build_result/dobby_x86.dll dobby_dist/dobby_x86.dll
-          mv build64/libdobby.so dobby_dist/libdobby_x64.so
-          mv build86/libdobby.so dobby_dist/libdobby_x86.so
-          mv build64/libdobby.dylib dobby_dist/libdobby_x64.dylib
-          mv build86/libdobby.dylib dobby_dist/libdobby_x86.dylib
+          mv dobby_win/build_result/dobby_x64.dll dobby_dist/dobby_x64.dll
+          mv dobby_win/build_result/dobby_x86.dll dobby_dist/dobby_x86.dll
+          mv dobby_linux/build64/libdobby.so dobby_dist/libdobby_x64.so
+          mv dobby_linux/build86/libdobby.so dobby_dist/libdobby_x86.so
+          mv dobby_macos/build64/libdobby.dylib dobby_dist/libdobby_x64.dylib
+          mv dobby_macos/build86/libdobby.dylib dobby_dist/libdobby_x86.dylib
           cd dobby_dist
           zip -r dobby_$(Build.BuildId).zip *.{dll,so,dylib}
         displayName: 'build pack'
